@@ -4,10 +4,18 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"strings"
 )
 
 func main() {
-	resp, err := http.Get("http://localhost:8080")
+	if len(os.Args) != 2 {
+		fmt.Println("Usage: client <url>")
+		os.Exit(1)
+	}
+	url := os.Args[1]
+
+	resp, err := http.Post("http://localhost:8080", "text/plain", strings.NewReader(url))
 	if err != nil {
 		panic(err)
 	}
@@ -18,5 +26,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(string(body))
+	fmt.Println("tinyUrl", string(body))
 }

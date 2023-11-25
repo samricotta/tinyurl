@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	server "github.com/samricotta/tinyurl/server/http"
 )
 
 func main() {
-	server.Serve(os.Args[1])
-	// import something from server and run it
+	if err := server.Serve(os.Args[1]); err != nil {
+		fmt.Println(err)
+	}
 }

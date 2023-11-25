@@ -1,8 +1,12 @@
 package main
 
-import "github.com/samricotta/tinyurl/server"
+import (
+	"os"
+
+	server "github.com/samricotta/tinyurl/server/http"
+)
 
 func main() {
-	server.Serve()
+	server.Serve(os.Args[1])
 	// import something from server and run it
 }

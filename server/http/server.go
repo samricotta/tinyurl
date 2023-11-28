@@ -1,10 +1,11 @@
 package server
 
 import (
-	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/samricotta/tinyurl/store"
 )
@@ -17,9 +18,10 @@ func Serve(path string) error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			tinyUrl, err := base64.StdEncoding.DecodeString(r.URL.Path)
+			path := strings.TrimPrefix(r.URL.Path, "/")
+			tinyUrl, err := strconv.ParseUint(path, 10, 64)
 			if err != nil {
-				fmt.Println("error decoding tiny url", r.URL.Path, err)
+				fmt.Println("error decoding tiny url", path, err)
 				http.Error(w, "Invalid URL", http.StatusBadRequest)
 				return
 			}
@@ -43,9 +45,11 @@ func Serve(path string) error {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			tinyUrlStr := strconv.FormatUint(tinyUrl, 10)
+
 			// we return the tiny URL to the user
-			path := r.URL.Host + "/" + base64.StdEncoding.EncodeToString(tinyUrl)
-			fmt.Println("writing tiny url", tinyUrl, "path", path)
+			path := r.URL.Host + "/" + tinyUrlStr
+			fmt.Println("writing tiny url", tinyUrlStr, "path", path)
 			if _, err := w.Write([]byte(path)); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return

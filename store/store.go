@@ -3,6 +3,7 @@ package store
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 
 	"github.com/dgraph-io/badger/v4"
 )
@@ -35,7 +36,8 @@ func New(path string) (*Store, error) {
 	return &Store{db: db}, nil
 }
 
-func (s *Store) Set(longUrl []byte) (tinyUrl []byte, err error) {
+func (s *Store) Set(longUrl []byte) (tinyUrl uint64, err error) {
+	var tinyUrlBytes []byte
 	err = s.db.Update(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte{nextUnusedKey})
 		if err != nil {
@@ -43,27 +45,33 @@ func (s *Store) Set(longUrl []byte) (tinyUrl []byte, err error) {
 		}
 
 		err = item.Value(func(val []byte) error {
-			tinyUrl = val
+			tinyUrlBytes = val
+			tinyUrl = binary.BigEndian.Uint64(val)
+			fmt.Printf("tinyUrl: %X\n", tinyUrl)
 			return nil
 		})
 		if err != nil {
 			return err
 		}
 
-		if err := txn.Set(tinyUrl, longUrl); err != nil {
+		if err := txn.Set(tinyUrlBytes, longUrl); err != nil {
 			return err
 		}
 
 		newValue := make([]byte, 8)
-		binary.BigEndian.PutUint64(newValue, binary.BigEndian.Uint64(tinyUrl)+1)
+		binary.BigEndian.PutUint64(newValue, tinyUrl+1)
 		return txn.Set([]byte{nextUnusedKey}, newValue)
 	})
+	fmt.Printf("tinyUrl: %X\n", tinyUrl)
 	return tinyUrl, err
 }
 
-func (s *Store) Get(tinyUrl []byte) (longUrl []byte, err error) {
+func (s *Store) Get(tinyUrl uint64) (longUrl []byte, err error) {
 	err = s.db.View(func(txn *badger.Txn) error {
-		item, err := txn.Get(tinyUrl)
+		tinyUrlBytes := make([]byte, 8)
+		binary.BigEndian.PutUint64(tinyUrlBytes, tinyUrl)
+
+		item, err := txn.Get(tinyUrlBytes)
 		if err != nil {
 			return err
 		}

@@ -1,0 +1,31 @@
+syntax = "proto3";
+package tinyurl.server;
+
+option go_package = "tinyurl/server";
+
+import "google/api/annotations.proto";
+
+service TinyURL {
+	rpc Get(GetRequest) returns (GetResponse) {
+		option (google.api.http).get  = "/{tiny_url}";
+	}
+	rpc Post(PostRequest) returns (PostResponse) {
+		option (google.api.http).post  = "/{long_url}";
+	}
+}
+
+message GetRequest {
+    uint64 tiny_url = 1;
+}
+
+message GetResponse {
+	string long_url = 1;
+}
+
+message PostRequest {
+	string long_url = 1;
+}
+
+message PostResponse {
+	uint64 tiny_url = 1;
+}

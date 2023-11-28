@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	server "github.com/samricotta/tinyurl/server/http"
+	server "github.com/samricotta/tinyurl/server/grpc"
 )
 
 func main() {

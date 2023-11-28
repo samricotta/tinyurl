@@ -48,8 +48,12 @@ func Serve(path string) error {
 			tinyUrlStr := strconv.FormatUint(tinyUrl, 10)
 
 			// we return the tiny URL to the user
-			path := r.URL.Host + "/" + tinyUrlStr
-			fmt.Println("writing tiny url", tinyUrlStr, "path", path)
+			host := "localhost:8080"
+			if r.URL.Host != "" {
+				host = r.URL.Host
+			}
+			path := host + "/" + tinyUrlStr
+			fmt.Println("writing tiny url", path)
 			if _, err := w.Write([]byte(path)); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
